@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sys/mount.h>
 #include <sched.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -38,6 +39,8 @@ int jail(void *args) {
 	setup_variables();
 	setup_root();
 	
+	mount("proc", "/proc", "proc", 0, 0);
+
 	run("/bin/sh");
 	return (EXIT_SUCCESS);
 }
