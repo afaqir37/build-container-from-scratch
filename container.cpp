@@ -4,12 +4,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-int jail(void *args) {
-	sleep(4);
-	printf("Hello, World!, (child) \n");
-	return (EXIT_SUCCESS);
-}
-
 char* stack_memory() {
 	const int stackSize = 65536;
 	auto *stack = new (std::nothrow) char[stackSize];
@@ -22,6 +16,16 @@ char* stack_memory() {
 	return stack + stackSize; // move the pointer to the end of the array because the stack grows backward.
 }
 
+template <typename... P>
+int run(P...params) {
+	char *args[] = {(char *)params..., (char *)0};
+	return execvp(args[0], args);
+}
+
+int jail(void *args) {
+	run("/bin/sh");
+	return (EXIT_SUCCESS);
+}
 
 int main() {
 	printf("Hello, World!, (parent) \n");
