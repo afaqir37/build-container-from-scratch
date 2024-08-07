@@ -16,6 +16,17 @@ char* stack_memory() {
 	return stack + stackSize; // move the pointer to the end of the array because the stack grows backward.
 }
 
+void setup_variables() {	
+	clearenv(); // remove all env variables for this process		
+	setenv("TERM", "xterm-256color", 0);
+	setenv("PATH", "/bin/:/sbin/:usr/bin:/usr/sbin", 0);
+}
+
+void setup_root() {
+	chroot("./root");
+	chdir("/");
+}
+
 template <typename... P>
 int run(P...params) {
 	char *args[] = {(char *)params..., (char *)0};
@@ -23,9 +34,10 @@ int run(P...params) {
 }
 
 int jail(void *args) {
-	clearenv(); // remove all env variables for this process		
 	printf("child process id: %d\n", getpid());
-
+	setup_variables();
+	setup_root();
+	
 	run("/bin/sh");
 	return (EXIT_SUCCESS);
 }
