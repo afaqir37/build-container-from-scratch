@@ -24,6 +24,7 @@ int run(P...params) {
 
 int jail(void *args) {
 	clearenv(); // remove all env variables for this process		
+	printf("child process id: %d\n", getpid());
 
 	run("/bin/sh");
 	return (EXIT_SUCCESS);
@@ -31,8 +32,8 @@ int jail(void *args) {
 
 int main() {
 	printf("Hello, World!, (parent) \n");
-
-	clone(jail, stack_memory(), CLONE_NEWUTS |  SIGCHLD, 0);
+	printf("parent process id: %d\n", getpid());
+	clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS |  SIGCHLD, 0);
 	wait(NULL);
 	return EXIT_SUCCESS;
 }
