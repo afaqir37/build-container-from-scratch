@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sys/prctl.h>
 #include <sys/mount.h>
 #include <sched.h>
 #include <sys/types.h>
@@ -38,17 +39,35 @@ int jail(void *args) {
 	printf("child process id: %d\n", getpid());
 	setup_variables();
 	setup_root();
-	
+		
 	mount("proc", "/proc", "proc", 0, 0);
+	prctl(PR_SET_NAME, (unsigned long)"messi", 0, 0, 0);
+	printf("running ps: \n");
+	system("ps");
 
-	run("/bin/sh");
+	auto runThis = [](void *args) -> int {
+		prctl(PR_SET_NAME, (unsigned long)"prctl", 0, 0, 0);
+		printf("second child process id: %d\n", getpid());
+		mount("proc", "/proc", "proc", 0, 0);
+		
+		printf("second running ps: \n");
+		system("ps");
+		run("/bin/sh");
+		return EXIT_SUCCESS;
+	};
+
+	clone(runThis, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD, 0);
+	wait(NULL);	
+
+	
+	umount("/proc");
 	return (EXIT_SUCCESS);
 }
 
 int main() {
 	printf("Hello, World!, (parent) \n");
 	printf("parent process id: %d\n", getpid());
-	clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS |  SIGCHLD, 0);
+	clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD, 0);
 	wait(NULL);
 	return EXIT_SUCCESS;
 }
