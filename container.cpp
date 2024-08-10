@@ -56,9 +56,9 @@ int jail(void *args) {
 		return EXIT_SUCCESS;
 	};
 
-	clone(runThis, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD, 0);
+	clone(runThis, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
 	wait(NULL);	
-
+ 
 	
 	umount("/proc");
 	return (EXIT_SUCCESS);
@@ -67,8 +67,9 @@ int jail(void *args) {
 int main() {
 	printf("Hello, World!, (parent) \n");
 	printf("parent process id: %d\n", getpid());
-	clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD, 0);
+	clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
 	wait(NULL);
+	umount("./root/proc");
 	return EXIT_SUCCESS;
 }
 
