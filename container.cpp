@@ -5,6 +5,33 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <fcntl.h>
+
+#define CGROUP_FOLDER "/sys/fs/cgroup/pids/container/"
+#define concat(a,b) (a"" b)
+
+void writeRule(const char *path, const char *value) {
+	int fp = open(path, O_WRONLY | O_APPEND);
+	if (fp == -1)
+		perror("write");
+	write(fp, value, strlen(value));
+	close(fp);
+}
+
+void limitProcessCreation() {
+	mkdir(CGROUP_FOLDER, S_IRUSR | S_IWUSR);
+
+	const char *pid = std::to_string(getpid()).c_str();
+	writeRule(concat(CGROUP_FOLDER, "cgroup.procs"), pid);
+	writeRule(concat(CGROUP_FOLDER, "notify_on_release"), "1");
+	writeRule(concat(CGROUP_FOLDER, "pids.max"), "5");
+	
+}
+
+
+
 
 char* stack_memory() {
 	const int stackSize = 65536;
@@ -36,6 +63,7 @@ int run(P...params) {
 }
 
 int jail(void *args) {
+	limitProcessCreation();
 	printf("child process id: %d\n", getpid());
 	setup_variables();
 	setup_root();
